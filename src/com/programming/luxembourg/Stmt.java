@@ -15,6 +15,7 @@ abstract  class Stmt {
         R visitFunctionStmt(Function function);
         R visitReturnStmt(Return aReturn);
         R visitClassStmt(Class aClass);
+        R visitImportStatement(Import anImport);
     }
     static class Expression extends Stmt {
         Expression(Expr expression) {
@@ -158,7 +159,19 @@ abstract  class Stmt {
         //final Expr.Variable superclass;
         final List<Stmt.Function> methods;
     }
+    static class Import extends Stmt {
+        Import(Object path) {
+            this.path = path;
+        }
 
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitImportStatement(this);
+        }
+
+        final Object path;
+
+    }
 
 }
 

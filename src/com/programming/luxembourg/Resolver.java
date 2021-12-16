@@ -13,6 +13,7 @@ public class Resolver implements Expr.Visitor<Void>,Stmt.Visitor<Void> {
     @Override
     public Void visitBinaryExpr(Expr.Binary expr) {
         resolve(expr.left);
+
         resolve(expr.right);
 
         return null;
@@ -42,6 +43,7 @@ public class Resolver implements Expr.Visitor<Void>,Stmt.Visitor<Void> {
         if (!scopes.isEmpty() && scopes.peek().get(variable.name.lexme)==Boolean.FALSE){
             Klug.error(variable.name,"Can't read local variable in its own initializer");
         }
+
         resolveLocal(variable,variable.name);
         
         return null;
@@ -156,7 +158,7 @@ public class Resolver implements Expr.Visitor<Void>,Stmt.Visitor<Void> {
     @Override
     public Void visitFunctionStmt(Stmt.Function function) {
         declare(function.name);
-        declare(function.name);
+        define(function.name);
         resolveFunction(function,FunctionType.FUNCTION);
 
         return null;
@@ -188,6 +190,11 @@ public class Resolver implements Expr.Visitor<Void>,Stmt.Visitor<Void> {
         }
         endScope();
 
+        return null;
+    }
+
+    @Override
+    public Void visitImportStatement(Stmt.Import anImport) {
         return null;
     }
 
@@ -244,6 +251,7 @@ public class Resolver implements Expr.Visitor<Void>,Stmt.Visitor<Void> {
     private void resolveFunction(Stmt.Function function,FunctionType funType) {
         FunctionType enclosingFunction=currentFunction;
         currentFunction=funType;
+
         beginScope();
             for (Token param:function.params){
                 declare(param);

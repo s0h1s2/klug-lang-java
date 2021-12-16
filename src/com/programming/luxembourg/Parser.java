@@ -53,7 +53,14 @@ public class Parser {
 
         }
     }
+    private Stmt importStatement(){
+        Token path=consume(STRING,"expected path after import.");
+        consume(SEMICOLON,"expected ';' after path.");
 
+        return new Stmt.Import(path.literal);
+
+
+    }
     private Stmt classDeclaration() {
         Token name=consume(IDENTIFIER,"Expect class name");
         consume(LEFT_BRACE,"Expect '(' before body");
@@ -91,7 +98,6 @@ public class Parser {
     private Stmt varDeclaration() {
         Token prev=previous();
         Token name=consume(IDENTIFIER,"Expect variable name.");
-
         Expr initializer=null;
         if (match(EQUAL)){
             initializer=expression();
@@ -105,6 +111,7 @@ public class Parser {
         if (match(IF))return ifStatement();
         if (match(FOR))return forStatement();
         if (match(BREAK)) return breakStatement();
+        if (match(IMPORT)) return importStatement();
 
         if (match(RETURN)) return returnStatement();
         if(match(WHILE)) return whileStatement();
@@ -113,6 +120,8 @@ public class Parser {
         return expressionStatement();
         
     }
+
+
 
 
     private Stmt returnStatement() {
@@ -227,7 +236,6 @@ public class Parser {
             else if (expr instanceof Expr.Get) {
                 Expr.Get get = (Expr.Get) expr;
                 return new Expr.Set(get.object, get.name, value);
-
             }
             error(equals, "Invalid assignment target.");
         }

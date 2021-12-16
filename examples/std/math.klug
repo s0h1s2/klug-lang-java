@@ -1,0 +1,25 @@
+fun add(x,y){
+    return x+y;
+
+}
+fun subtract(x,y){
+    return x-y;
+}
+fun fizzBuzz(to){
+    var x=0;
+
+    while(x<to)
+    {
+        if(x%3==0){
+            print x+"fizz";
+
+        }else if(x%5==0){
+            print x+"buzz";
+
+        }else if(x%3==0 and x%5==0){
+            print x+" fizzbuzz";
+        }
+        x=x+1;
+
+    }
+}

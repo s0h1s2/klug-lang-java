@@ -17,12 +17,14 @@ public class Scanner {
     static {
         keywords = new HashMap<>();
         keywords.put("and",    AND);
+        keywords.put("import",    IMPORT);
         keywords.put("class",  CLASS);
         keywords.put("else",   ELSE);
         keywords.put("false",  FALSE);
         keywords.put("for",    FOR);
         keywords.put("fun",    FUN);
         keywords.put("if",     IF);
+        keywords.put("elif",     ELSEIF);
         keywords.put("nil",    NIL);
         keywords.put("or",     OR);
         keywords.put("print",  PRINT);
@@ -36,10 +38,6 @@ public class Scanner {
         keywords.put("int",  INT);
         keywords.put("string",  STR);
         keywords.put("bool",  BOOL);
-
-
-
-
     }
 
     public Scanner(String source) {

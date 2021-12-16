@@ -1,4 +1,8 @@
 package com.programming.luxembourg;
+import java.io.IOException;
+import java.nio.file.Files;
+
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -122,10 +126,33 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>
         return null;
     }
 
+    @Override
+    public Void visitImportStatement(Stmt.Import anImport)  {
+        try{
+            String source=new String(Files.readAllBytes(Paths.get(anImport.path.toString())));
+            Scanner scanner=new Scanner(source);
+            List<Token> tokens=scanner.scanTokens();
+            Parser parser=new Parser(tokens);
+            List<Stmt> statements= parser.parse();
+            Resolver resolver=new Resolver(this);
+            resolver.resolve(statements);
+            for (int i=0;i<statements.size();i++){
+                execute(statements.get(i));
+
+            }
+        }
+        catch (IOException e) {
+            System.out.println("Module couldn't be found.");
+
+            System.exit(70);
+        }
+        return null;
+    }
+
 
     public void executeBlock(List<Stmt> statements, Environment environment)
     {
-        Environment prev=environment;
+        Environment prev=this.environment;
         try {
             this.environment=environment;
             for (Stmt statement:statements){
@@ -133,7 +160,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>
 
             }
         }finally {
-            this.environment=environment;
+            this.environment=prev;
         }
     }
 
@@ -387,6 +414,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>
     private Object lookUpVariable(Token name, Expr.Variable expr) {
         Integer distance=locals.get(expr);
         if (distance!=null){
+            System.out.println(distance);
+            System.out.println(name.lexme);
+            System.out.println(environment.getAt(distance,name.lexme));
+
+
             return environment.getAt(distance,name.lexme);
         }else{
             return globals.get(name);
