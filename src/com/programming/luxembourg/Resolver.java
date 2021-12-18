@@ -97,6 +97,23 @@ public class Resolver implements Expr.Visitor<Void>,Stmt.Visitor<Void> {
         return null;
     }
 
+    @Override
+    public Void visitArrayList(Expr.ArrayList arrayList) {
+        for(Expr item:arrayList.exprs){
+            resolve(item);
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitSubscriptGet(Expr.SubscriptGet subscriptGet) {
+        this.resolve(subscriptGet.object);
+        this.resolve(subscriptGet.index);
+
+        return null;
+
+    }
+
 
     @Override
     public Void visitExpressionStmt(Stmt.Expression stmt) {
@@ -195,6 +212,7 @@ public class Resolver implements Expr.Visitor<Void>,Stmt.Visitor<Void> {
 
     @Override
     public Void visitImportStatement(Stmt.Import anImport) {
+
         return null;
     }
 

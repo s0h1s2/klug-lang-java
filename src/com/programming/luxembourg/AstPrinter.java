@@ -10,7 +10,6 @@ class AstPrinter implements Expr.Visitor<String> {
         for (Expr expr:exprs){
             builder.append(" ");
             builder.append(expr.accept(this));
-
         }
         builder.append(")");
         return builder.toString();
@@ -75,6 +74,16 @@ class AstPrinter implements Expr.Visitor<String> {
 
     @Override
     public String visitThisExpr(Expr.This aThis) {
+        return null;
+    }
+
+    @Override
+    public String visitArrayList(Expr.ArrayList arrayList) {
+        return null;
+    }
+
+    @Override
+    public String visitSubscriptGet(Expr.SubscriptGet subscriptGet) {
         return null;
     }
 

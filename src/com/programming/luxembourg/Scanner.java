@@ -24,7 +24,6 @@ public class Scanner {
         keywords.put("for",    FOR);
         keywords.put("fun",    FUN);
         keywords.put("if",     IF);
-        keywords.put("elif",     ELSEIF);
         keywords.put("nil",    NIL);
         keywords.put("or",     OR);
         keywords.put("print",  PRINT);
@@ -67,6 +66,9 @@ public class Scanner {
             case ')': addToken(RIGHT_PAREN); break;
             case '{': addToken(LEFT_BRACE); break;
             case '}': addToken(RIGHT_BRACE); break;
+            case '[': addToken(LEFT_BRACKET); break;
+            case ']': addToken(RIGHT_BRACKET); break;
+
             case ',': addToken(COMMA); break;
             case '.': addToken(DOT); break;
             case '-': addToken(MINUS); break;

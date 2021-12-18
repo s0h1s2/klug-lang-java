@@ -8,7 +8,6 @@ public class Environment {
     final Environment enclosing;
     Environment(){
         this.enclosing=null;
-
     }
     Environment(Environment enclosing){
         this.enclosing=enclosing;
@@ -74,6 +73,10 @@ public class Environment {
 
     public void assignAt(Integer distance, Token name, Object value) {
         ancestor(distance).values.put(name.lexme,value);
+
+    }
+    public void printCurrentKeys(){
+        System.out.println(this.values);
 
     }
 }

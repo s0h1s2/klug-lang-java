@@ -3,16 +3,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Stream;
 
 import static com.programming.luxembourg.TokenType.*;
 
 import com.programming.luxembourg.methods.Clock;
-import com.programming.luxembourg.methods.Pow;
-import com.programming.luxembourg.methods.Time;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>
 {
@@ -23,10 +19,6 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>
     private boolean shouldStop=false;
     Interpreter(){
         globals.define("clock", new Clock());
-        globals.define("time", new Time());
-        globals.define("pow", new Pow());
-
-
     }
     @Override
     public Void visitExpressionStmt(Stmt.Expression stmt) {
@@ -42,7 +34,6 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>
         Object value=evaluate(stmt.expression);
         System.out.println(stringify(value));
         return null;
-
     }
 
     @Override
@@ -138,7 +129,6 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>
             resolver.resolve(statements);
             for (int i=0;i<statements.size();i++){
                 execute(statements.get(i));
-
             }
         }
         catch (IOException e) {
@@ -346,6 +336,39 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>
 
     }
 
+    @Override
+    public Object visitArrayList(Expr.ArrayList arrayList) {
+        List values=new ArrayList<Object>();
+
+        for ( Expr item: arrayList.exprs)
+        {
+            Object result=this.evaluate(item);
+            values.add(result);
+        }
+        return values;
+    }
+
+    @Override
+    public Object visitSubscriptGet(Expr.SubscriptGet subscriptGet) {
+         Object result=this.evaluate(subscriptGet.object);
+        if(result instanceof List){
+            int index=((Double)this.evaluate(subscriptGet.index)).intValue();
+            List<?> abc=(List<?>) result;
+            if (index>abc.size()-1){
+                throw new RuntimeError(subscriptGet.token,"index out of bound.");
+            }else{
+                return abc.get(index);
+            }
+
+        }
+        return null;
+
+
+    }
+    private static Stream<Object> flatten(Object[] array) {
+        return Arrays.stream(array)
+                .flatMap(o -> o instanceof Object[]? flatten((Object[])o): Stream.of(o));
+    }
     private boolean isTruthy(Object object) {
         if (object==null)
         {
@@ -414,11 +437,6 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>
     private Object lookUpVariable(Token name, Expr.Variable expr) {
         Integer distance=locals.get(expr);
         if (distance!=null){
-            System.out.println(distance);
-            System.out.println(name.lexme);
-            System.out.println(environment.getAt(distance,name.lexme));
-
-
             return environment.getAt(distance,name.lexme);
         }else{
             return globals.get(name);

@@ -15,6 +15,8 @@ abstract class Expr {
     R visitGetExpr(Get get);
     R visitSetExpr(Set set);
     R visitThisExpr(This aThis);
+    R visitArrayList(ArrayList arrayList);
+    R visitSubscriptGet(SubscriptGet subscriptGet);
   }
   static class Variable extends Expr {
     Variable(Token name) {
@@ -173,5 +175,30 @@ abstract class Expr {
 
     final Token keyword;
   }
+  static class ArrayList extends Expr {
+    ArrayList(List<Expr> exprs) {
+      this.exprs=exprs;
+    }
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitArrayList(this);
+    }
+    final List<Expr> exprs;
 
+  }
+
+  static class SubscriptGet extends Expr {
+        public SubscriptGet(Expr object,Expr index,Token token) {
+          this.object = object;
+          this.index=index;
+          this.token=token;
+
+        }
+      <R> R accept(Visitor<R> visitor) {
+        return visitor.visitSubscriptGet(this);
+      }
+      final Expr object;
+      final Expr index;
+      final Token token;
+
+  }
 }

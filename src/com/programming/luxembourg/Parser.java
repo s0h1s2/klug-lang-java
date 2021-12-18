@@ -96,7 +96,6 @@ public class Parser {
     }
 
     private Stmt varDeclaration() {
-        Token prev=previous();
         Token name=consume(IDENTIFIER,"Expect variable name.");
         Expr initializer=null;
         if (match(EQUAL)){
@@ -275,7 +274,19 @@ public class Parser {
         return expr;
 
     }
+    private List<Expr> listDisplay(){
+        if (match(RIGHT_BRACKET)){
+            return new ArrayList<Expr>();
+        }
+        List exprs=new ArrayList<Expr>();
+        exprs.add(assignment());
+        while (match(COMMA)){
+            exprs.add(assignment());
+        }
+        consume(RIGHT_BRACKET,"Expect ']' after array.");
+        return exprs;
 
+    }
     private Expr unary() {
         if (match(BANG,MINUS)){
             Token operator=previous();
@@ -286,7 +297,16 @@ public class Parser {
         return call();
 
     }
-
+//    private Expr subscript(){
+//        Expr expr=primary();
+//        if (match(LEFT_BRACKET)){
+//            expr=or();
+//        }
+//        consume(RIGHT_BRACKET,"Expect ']' after array.");
+//        return expr;
+//
+//    }
+//
     private Expr call() {
         Expr expr=primary();
         while (true){
@@ -296,7 +316,9 @@ public class Parser {
             }else if (match(DOT)){
                 Token name=consume(IDENTIFIER,"Expect property name after '.'");
                 expr=new Expr.Get(expr,name);
-
+            }
+            else if(match(LEFT_BRACKET)){
+                expr=finishSubscript(expr);
             }
             else{
                 break;
@@ -306,7 +328,12 @@ public class Parser {
 
     }
 
+    private Expr finishSubscript(Expr object){
+        Expr index=expression();
+        Token token=consume(RIGHT_BRACKET,"Expect ']' after getting index.");
+        return new  Expr.SubscriptGet(object,index,token);
 
+    }
     private Expr finishCall(Expr callee) {
         List<Expr> arguments=new ArrayList<>();
         if (!check(RIGHT_PAREN)){
@@ -351,6 +378,11 @@ public class Parser {
             Expr expr=expression();
             consume(RIGHT_PAREN,"Expect ')' after expression.");
             return new Expr.Grouping(expr);
+        }
+        if(match(LEFT_BRACKET)){
+            List<Expr> exprs=listDisplay();
+
+            return new Expr.ArrayList(exprs);
         }
         throw error(peek(),"Expect expression");
 

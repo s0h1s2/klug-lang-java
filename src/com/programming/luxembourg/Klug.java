@@ -47,7 +47,6 @@ public class Klug {
     private static void run(String source) {
         Scanner scanner=new Scanner(source);
         List<Token> tokens=scanner.scanTokens();
-
         Parser parser=new Parser(tokens);
         List<Stmt> statements=parser.parse();
         if (hasError)return;
@@ -65,7 +64,6 @@ public class Klug {
         hasError=true;
     }
     static void error(Token token, String message){
-
         if (token.type==TokenType.EOF){
             report(token.line,"at end ",message);
         }else{
