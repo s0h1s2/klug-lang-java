@@ -37,6 +37,7 @@ public class Scanner {
         keywords.put("int",  INT);
         keywords.put("string",  STR);
         keywords.put("bool",  BOOL);
+
     }
 
     public Scanner(String source) {

@@ -1,11 +1,11 @@
 package com.programming.luxembourg;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
@@ -18,6 +18,8 @@ public class Klug {
     static final private int SCRIPT_FAIL_STATUS=64;
     static final private int RUNTIME_EXIT_ERROR=70;
     static boolean isREPLMode =false;
+    static Path currentFileDirectory;
+
 
 
     public static void main(String[] args) throws IOException {
@@ -35,6 +37,7 @@ public class Klug {
     private static void runFile(String file) throws IOException
     {
         byte[] bytes= Files.readAllBytes(Paths.get(file));
+        currentFileDirectory=Paths.get(file).getParent();
         run(new String(bytes, Charset.defaultCharset()));
         if (hasError) {
             System.exit(65);

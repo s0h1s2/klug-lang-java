@@ -120,7 +120,9 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>
     @Override
     public Void visitImportStatement(Stmt.Import anImport)  {
         try{
-            String source=new String(Files.readAllBytes(Paths.get(anImport.path.toString())));
+
+            String source=new String(Files.readAllBytes(Paths.get(Klug.currentFileDirectory.toString(),anImport.path.toString())));
+
             Scanner scanner=new Scanner(source);
             List<Token> tokens=scanner.scanTokens();
             Parser parser=new Parser(tokens);
@@ -242,12 +244,18 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>
     @Override
     public Object visitUnaryExpr(Expr.Unary expr) {
         Object right=evaluate(expr.right);
-
         switch (expr.operator.type){
             case MINUS :
                 return -(double)right;
             case BANG:
                 return !isTruthy(right);
+            case INCREMENT:
+                if (!(expr.right instanceof Expr.Variable)){
+                    throw new RuntimeError(expr.operator,"must be a variable  before ++ or --");
+                }
+                double value=(double)right;
+                Expr.Variable variable=(Expr.Variable) expr.right;
+                environment.assign(variable.name,value+1);
         }
         return null;
 
@@ -265,6 +273,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>
     {
         Object value=evaluate(expr.value);
         Integer distance=locals.get(expr);
+
         if (distance!=null){
             environment.assignAt(distance,expr.name,value);
         }else{

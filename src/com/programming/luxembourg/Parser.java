@@ -194,10 +194,8 @@ public class Parser {
         List<Stmt> statements=new ArrayList<>();
         while(!isAtEnd() && !check(RIGHT_BRACE)){
             statements.add(declaration());
-
         }
         consume(RIGHT_BRACE,"Expect ')' after block.");
-
         return statements;
 
     }
@@ -291,22 +289,24 @@ public class Parser {
         if (match(BANG,MINUS)){
             Token operator=previous();
             Expr right=unary();
-            return new Expr.Unary(operator,right);
+            return new Expr.Unary(operator,right, false);
+        }
+        return postfix();
 
+    }
+    private Expr postfix(){
+        if (matchNext(INCREMENT)){
+            Token operator=peek();
+            current--;
+            Expr left=primary();
+            advance();
+            return new Expr.Unary(operator,left,true);
         }
         return call();
 
     }
-//    private Expr subscript(){
-//        Expr expr=primary();
-//        if (match(LEFT_BRACKET)){
-//            expr=or();
-//        }
-//        consume(RIGHT_BRACKET,"Expect ']' after array.");
-//        return expr;
-//
-//    }
-//
+
+
     private Expr call() {
         Expr expr=primary();
         while (true){
@@ -435,17 +435,30 @@ public class Parser {
             if (check(type)){
                 advance();
                 return true;
-
             }
         }
         return false;
-
     }
+    private boolean matchNext(TokenType...types) {
+        for (TokenType type:types){
+            if (checkNext(type)){
+                advance();
+                return true;
+            }
+        }
+        return false;
+    }
+
     private boolean check(TokenType type){
         if (isAtEnd())return false;
         return peek().type==type;
+    }
+    private boolean checkNext(TokenType type){
+        if (isAtEnd())return false;
+        return peekNext().type==type;
 
     }
+
     private Token advance() {
         if (!isAtEnd()){
             current+=1;
@@ -463,7 +476,9 @@ public class Parser {
         return tokens.get(current);
 
     }
-
+    private Token peekNext(){
+        return tokens.get(current+1);
+    }
 
     private Token consume(TokenType type, String message) {
         if (check(type))return advance();

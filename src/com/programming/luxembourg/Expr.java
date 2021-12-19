@@ -20,6 +20,7 @@ abstract class Expr {
   }
   static class Variable extends Expr {
     Variable(Token name) {
+
       this.name = name;
     }
 
@@ -27,8 +28,8 @@ abstract class Expr {
     <R> R accept(Visitor<R> visitor) {
       return visitor.visitVariableExpr(this);
     }
-
     final Token name;
+
   }
 
   static class Binary extends Expr {
@@ -72,9 +73,10 @@ abstract class Expr {
     final Object value;
   }
   static class Unary extends Expr {
-    Unary(Token operator, Expr right) {
+    Unary(Token operator, Expr right, boolean postifx) {
       this.operator = operator;
       this.right = right;
+      this.postifx = postifx;
     }
 
     @Override
@@ -84,6 +86,8 @@ abstract class Expr {
 
     final Token operator;
     final Expr right;
+    final boolean postifx;
+
   }
   static class Assign extends Expr {
     Assign(Token name, Expr value) {
