@@ -20,8 +20,8 @@ public class LoxInstance {
 
 
         throw new RuntimeError(name,"undefined property '"+name.lexme+"'.");
-
     }
+
     @Override
     public String toString() {
         return loxClass+" instance";

@@ -8,9 +8,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Stack;
 
 public class Klug {
     private static final Interpreter interpreter=new Interpreter();
+    static public Stack paths;
+    static public Stack workingFiles;
 
     static boolean hasError=false;
     static boolean hasRuntimeError=false;
@@ -18,14 +21,13 @@ public class Klug {
     static final private int SCRIPT_FAIL_STATUS=64;
     static final private int RUNTIME_EXIT_ERROR=70;
     static boolean isREPLMode =false;
-    static Path currentFileDirectory;
-
-
-
     public static void main(String[] args) throws IOException {
+        paths=new Stack<Path>();
+        workingFiles=new Stack<Path>();
+
         if (args.length>1){
-            System.out.println("Usage: luxembourg [script]");
-            System.exit(SCRIPT_FAIL_STATUS);
+            System.out.println("Usage klug [file.klug]");
+          System.exit(SCRIPT_FAIL_STATUS);
         }else if (args.length==1){
             runFile(args[0]);
         }
@@ -34,10 +36,17 @@ public class Klug {
         }
     }
 
+    public static Path getCurrentFileDirectory(String file) {
+        return Paths.get(file).getParent();
+    }
+
     private static void runFile(String file) throws IOException
     {
+
         byte[] bytes= Files.readAllBytes(Paths.get(file));
-        currentFileDirectory=Paths.get(file).getParent();
+        paths.push(getCurrentFileDirectory(file));
+        workingFiles.push(Paths.get(file));
+        
         run(new String(bytes, Charset.defaultCharset()));
         if (hasError) {
             System.exit(65);
@@ -52,13 +61,25 @@ public class Klug {
         List<Token> tokens=scanner.scanTokens();
         Parser parser=new Parser(tokens);
         List<Stmt> statements=parser.parse();
+
         if (hasError)return;
         Resolver resolver=new Resolver(interpreter);
         resolver.resolve(statements);
+
         if (hasError)return;
         interpreter.interpret(statements);
+        // clear the stack path
+        clearStack();
 
     }
+
+    private static void clearStack() {
+        if (!(Klug.paths.empty())){
+            Klug.paths.pop();
+
+        }
+    }
+
     static void error(int line,String message){
         report(line,"",message);
     }

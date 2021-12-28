@@ -124,7 +124,10 @@ public class Resolver implements Expr.Visitor<Void>,Stmt.Visitor<Void> {
 
     @Override
     public Void visitPrintStmt(Stmt.Print stmt) {
-        resolve(stmt.expression);
+        for (Expr expression:stmt.expressions){
+            resolve(expression);
+        }
+
         return null;
     }
 
@@ -212,7 +215,11 @@ public class Resolver implements Expr.Visitor<Void>,Stmt.Visitor<Void> {
 
     @Override
     public Void visitImportStatement(Stmt.Import anImport) {
+        return null;
+    }
 
+    @Override
+    public Void visitContinueStmt(Stmt.Continue aContinue) {
         return null;
     }
 
@@ -267,9 +274,9 @@ public class Resolver implements Expr.Visitor<Void>,Stmt.Visitor<Void> {
         }
     }
     private void resolveFunction(Stmt.Function function,FunctionType funType) {
+
         FunctionType enclosingFunction=currentFunction;
         currentFunction=funType;
-
         beginScope();
             for (Token param:function.params){
                 declare(param);

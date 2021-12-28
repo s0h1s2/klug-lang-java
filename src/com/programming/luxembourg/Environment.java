@@ -19,7 +19,6 @@ public class Environment {
     Object get(Token name){
         if (values.containsKey(name.lexme)){
             return values.get(name.lexme);
-
         }
         if (enclosing!=null)return enclosing.get(name);
 
@@ -41,21 +40,6 @@ public class Environment {
         throw new RuntimeError(name,"Undefined variable '"+name.lexme+"'.");
 
     }
-    public void incrementBy(Token name, Object value) {
-        if (values.containsKey(name.lexme)){
-            if (values.get(name.lexme) instanceof Double){
-                values.put(name.lexme,(double)value+(double) values.get(name.lexme));;
-            }
-        }
-        if (enclosing!=null){
-            enclosing.assign(name,value);
-            return ;
-
-        }
-        throw new RuntimeError(name,"Undefined variable '"+name.lexme+"'.");
-
-    }
-
     public Object getAt(Integer distance, String name) {
         return ancestor(distance).values.get(name);
 
@@ -73,10 +57,6 @@ public class Environment {
 
     public void assignAt(Integer distance, Token name, Object value) {
         ancestor(distance).values.put(name.lexme,value);
-
-    }
-    public void printCurrentKeys(){
-        System.out.println(this.values);
 
     }
 }

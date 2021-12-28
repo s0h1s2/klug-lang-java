@@ -1,4 +1,0 @@
-import "std/math.klug";
-import "std/constants.klug";
-
-print PI;

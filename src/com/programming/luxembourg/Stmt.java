@@ -16,6 +16,7 @@ abstract  class Stmt {
         R visitReturnStmt(Return aReturn);
         R visitClassStmt(Class aClass);
         R visitImportStatement(Import anImport);
+        R visitContinueStmt(Continue aContinue);
     }
     static class Expression extends Stmt {
         Expression(Expr expression) {
@@ -30,8 +31,8 @@ abstract  class Stmt {
         final Expr expression;
     }
     static class Print extends Stmt {
-        Print(Expr expression) {
-            this.expression = expression;
+        Print(List<Expr> expressions) {
+            this.expressions= expressions;
         }
 
         @Override
@@ -39,7 +40,7 @@ abstract  class Stmt {
             return visitor.visitPrintStmt(this);
         }
 
-        final Expr expression;
+        final List<Expr> expressions;
     }
     static class Var extends Stmt {
 
@@ -107,6 +108,13 @@ abstract  class Stmt {
         }
 
     }
+    static class Continue extends Stmt {
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitContinueStmt(this);
+        }
+
+    }
+
     static class Function extends Stmt {
         Function(Token name, List<Token> params, List<Stmt> body) {
             this.name = name;

@@ -1,7 +1,7 @@
 package com.programming.luxembourg;
 import java.io.IOException;
 import java.nio.file.Files;
-
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Stream;
@@ -15,8 +15,9 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>
     public Environment globals=new Environment();
     private Environment environment=globals;
     private final Map<Expr,Integer> locals=new HashMap<>();
-
     private boolean shouldStop=false;
+    private boolean shouldContinue=false;
+
     Interpreter(){
         globals.define("clock", new Clock());
     }
@@ -31,8 +32,12 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>
 
     @Override
     public Void visitPrintStmt(Stmt.Print stmt) {
-        Object value=evaluate(stmt.expression);
-        System.out.println(stringify(value));
+        for (int i=0; i<stmt.expressions.size()-1;i++){
+            Object value=this.evaluate(stmt.expressions.get(i));
+            System.out.print(stringify(value)+" ");
+        }
+        System.out.print(stringify(this.evaluate(stmt.expressions.get(stmt.expressions.size()-1))));
+        System.out.println();
         return null;
     }
 
@@ -65,7 +70,12 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>
     @Override
     public Void visitWhileStmt(Stmt.While stmt) {
         while (isTruthy(evaluate(stmt.condition)) && !shouldStop){
-            execute(stmt.body);
+            if (!shouldContinue){
+                execute(stmt.body);
+            }else{
+                shouldContinue=false;
+            }
+
         }
         shouldStop=false;
         return null;
@@ -96,7 +106,6 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>
         }
         throw new Return(value);
 
-
     }
 
     @Override
@@ -106,10 +115,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>
         Map<String,LoxFunction> methods=new HashMap<>();
         for (Stmt.Function method:stmt.methods){
             LoxFunction function=new LoxFunction(method,environment);
-
-            methods.put(method.name.lexme,function);;
-
-
+            methods.put(method.name.lexme,function);
         }
         LoxClass lclass=new LoxClass(stmt.name.lexme,methods);
 
@@ -120,25 +126,37 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>
     @Override
     public Void visitImportStatement(Stmt.Import anImport)  {
         try{
-
-            String source=new String(Files.readAllBytes(Paths.get(Klug.currentFileDirectory.toString(),anImport.path.toString())));
-
+            Path filePath=Paths.get(Klug.paths.peek().toString(),anImport.path.toString());
+            String source=new String(Files.readAllBytes(filePath));
+            Klug.paths.push(Klug.getCurrentFileDirectory(filePath.toString()));
             Scanner scanner=new Scanner(source);
             List<Token> tokens=scanner.scanTokens();
             Parser parser=new Parser(tokens);
             List<Stmt> statements= parser.parse();
             Resolver resolver=new Resolver(this);
             resolver.resolve(statements);
-            for (int i=0;i<statements.size();i++){
-                execute(statements.get(i));
+            for (Stmt statement : statements) {
+                execute(statement);
             }
+
         }
         catch (IOException e) {
-            System.out.println("Module couldn't be found.");
+
+            System.err.println("Module couldn't be found '"+e.getMessage()+"'.");
 
             System.exit(70);
         }
+        finally {
+            Klug.paths.pop();
+        }
         return null;
+    }
+
+    @Override
+    public Void visitContinueStmt(Stmt.Continue aContinue) {
+        shouldContinue=true;
+        return null;
+
     }
 
 
@@ -238,7 +256,6 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>
     @Override
     public Object visitLiteralExpr(Expr.Literal expr) {
         return expr.value;
-
     }
 
     @Override
@@ -250,12 +267,20 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>
             case BANG:
                 return !isTruthy(right);
             case INCREMENT:
+            case DECREMENT:
                 if (!(expr.right instanceof Expr.Variable)){
-                    throw new RuntimeError(expr.operator,"must be a variable  before ++ or --");
+                    throw new RuntimeError(expr.operator,"must be a variable before "+expr.operator.lexme);
                 }
                 double value=(double)right;
                 Expr.Variable variable=(Expr.Variable) expr.right;
-                environment.assign(variable.name,value+1);
+                if (expr.operator.type==DECREMENT){
+                    environment.assign(variable.name,value-1);
+                }else{
+                    environment.assign(variable.name,value+1);
+                }
+                break;
+
+
         }
         return null;
 
@@ -300,10 +325,10 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>
     @Override
     public Object visitCallExpr(Expr.Call expr) {
         Object callee=evaluate(expr.callee);
+
         List<Object> arguments=new ArrayList<>();
         for (Expr argument:expr.arguments){
             arguments.add(evaluate(argument));
-
         }
         if (!(callee instanceof LoxCallable)){
             throw new RuntimeError(expr.paren,"Call only functions and classes");
@@ -321,7 +346,6 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>
         Object object=evaluate(get.object);
         if (object instanceof LoxInstance){
             return ((LoxInstance) object).get(get.name);
-
         }
         throw new RuntimeError(get.name,"Only instance have property access.");
     }
@@ -348,13 +372,13 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>
     @Override
     public Object visitArrayList(Expr.ArrayList arrayList) {
         List values=new ArrayList<Object>();
-
         for ( Expr item: arrayList.exprs)
         {
             Object result=this.evaluate(item);
             values.add(result);
         }
         return values;
+
     }
 
     @Override
@@ -373,10 +397,6 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>
         return null;
 
 
-    }
-    private static Stream<Object> flatten(Object[] array) {
-        return Arrays.stream(array)
-                .flatMap(o -> o instanceof Object[]? flatten((Object[])o): Stream.of(o));
     }
     private boolean isTruthy(Object object) {
         if (object==null)

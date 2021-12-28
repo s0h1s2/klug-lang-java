@@ -11,6 +11,7 @@ public class Parser {
 
     private final List<Token> tokens;
     private int current=0;
+    private int isLoop=0;
 
     Parser(List<Token> tokens){
         this.tokens = tokens;
@@ -25,10 +26,10 @@ public class Parser {
         
     }
     private Stmt ifStatement(){
+
         consume(LEFT_PAREN,"Expect '('.");
         Expr condition=expression();
         consume(RIGHT_PAREN,"Expect ')'.");
-
         Stmt thenBranch=statement();
 
         Stmt elseBranch=null;
@@ -81,7 +82,7 @@ public class Parser {
         if (!(check(RIGHT_PAREN))){
             do {
                 if (parameters.size()>=255){
-                    error(peek(),"Parameter limit exceeded more than 255.");
+                    throw error(peek(),"Parameter limit exceeded more than 255.");
                 }
                 parameters.add(consume(IDENTIFIER,"Expect parameter name."));
 
@@ -107,10 +108,12 @@ public class Parser {
 
 
     private Stmt statement() {
+        if (match(IMPORT)) return importStatement();
+
         if (match(IF))return ifStatement();
         if (match(FOR))return forStatement();
         if (match(BREAK)) return breakStatement();
-        if (match(IMPORT)) return importStatement();
+        if (match(CONTINUE)) return continueStatement();
 
         if (match(RETURN)) return returnStatement();
         if(match(WHILE)) return whileStatement();
@@ -120,7 +123,13 @@ public class Parser {
         
     }
 
-
+    private Stmt continueStatement() {
+        if (this.isLoop<=0){
+                throw error(this.previous(),"should be inside loop.");
+        }
+        consume(SEMICOLON,"Expect ';' after 'continue'.");
+        return new Stmt.Continue();
+    }
 
 
     private Stmt returnStatement() {
@@ -136,15 +145,16 @@ public class Parser {
 
 
     private Stmt breakStatement() {
-
+        if (this.isLoop<=0){
+            throw error(this.previous(),"'break' should be inside loop.");
+        }
         consume(SEMICOLON,"Expect ';' after 'break'");
-
         return new Stmt.Break();
     }
 
     private Stmt forStatement() {
         consume(LEFT_PAREN,"Expect '(' after 'for'.");
-        Stmt initializer=null;
+        Stmt initializer;
         if (match(SEMICOLON)){
             initializer=null;
 
@@ -182,10 +192,12 @@ public class Parser {
     }
 
     private Stmt whileStatement() {
+        this.isLoop++;
         consume(LEFT_PAREN,"Expect '(' after while");
         Expr condition=expression();
         consume(RIGHT_PAREN,"Expect ')' after while");
         Stmt body=statement();
+        this.isLoop--;
         return new Stmt.While(condition,body);
 
     }
@@ -208,9 +220,52 @@ public class Parser {
     }
 
     private Stmt printStatement() {
-        Expr value=expression();
+        // array of expression
+        List<Expr> expressions=new ArrayList<>();
+
+        expressions.add(expression());
+        while (match(COMMA)){
+            expressions.add(expression());
+
+        }
         consume(SEMICOLON,"Expected ';' after value.");
-        return new Stmt.Print(value);
+        return new Stmt.Print(expressions);
+
+
+    }
+    private Expr or() {
+        Expr expr=and();
+        while(match(OR)){
+            Token operator=previous();
+            Expr right=and();
+            expr=new Expr.Logical(expr,operator,right);
+
+        }
+        return expr;
+
+    }
+
+    private Expr and() {
+        Expr expr=equality();
+        while (match(AND)){
+            Token operator=previous();
+            Expr right=equality();
+            expr=new Expr.Logical(expr,operator,right);
+
+        }
+        return expr;
+
+    }
+
+    private Expr equality() {
+        Expr expr=comparison();
+        while(match(BANG_EQUAL,EQUAL_EQUAL)){
+            Token operator=previous();
+            Expr right=comparison();
+            expr=new Expr.Binary(expr,operator,right);
+
+        }
+        return expr;
 
     }
 
@@ -234,7 +289,7 @@ public class Parser {
                 Expr.Get get = (Expr.Get) expr;
                 return new Expr.Set(get.object, get.name, value);
             }
-            error(equals, "Invalid assignment target.");
+            throw error(equals, "Invalid assignment target.");
         }
         return expr;
 
@@ -272,19 +327,7 @@ public class Parser {
         return expr;
 
     }
-    private List<Expr> listDisplay(){
-        if (match(RIGHT_BRACKET)){
-            return new ArrayList<Expr>();
-        }
-        List exprs=new ArrayList<Expr>();
-        exprs.add(assignment());
-        while (match(COMMA)){
-            exprs.add(assignment());
-        }
-        consume(RIGHT_BRACKET,"Expect ']' after array.");
-        return exprs;
 
-    }
     private Expr unary() {
         if (match(BANG,MINUS)){
             Token operator=previous();
@@ -302,6 +345,14 @@ public class Parser {
             advance();
             return new Expr.Unary(operator,left,true);
         }
+        if (matchNext(DECREMENT)){
+            Token operator=peek();
+            current--;
+            Expr left=primary();
+            advance();
+            return new Expr.Unary(operator,left,true);
+        }
+
         return call();
 
     }
@@ -339,7 +390,7 @@ public class Parser {
         if (!check(RIGHT_PAREN)){
             do {
                 if (arguments.size()>=255){
-                    error(peek(),"Function arguments limit exceeded more than 255 arguments");
+                    throw error(peek(),"Function arguments limit exceeded more than 255 arguments");
 
                 }
                 arguments.add(expression());
@@ -386,44 +437,21 @@ public class Parser {
         }
         throw error(peek(),"Expect expression");
 
-
     }
-
-    private Expr or() {
-        Expr expr=and();
-        while(match(OR)){
-            Token operator=previous();
-            Expr right=and();
-            expr=new Expr.Logical(expr,operator,right);
-
+    private List<Expr> listDisplay(){
+        if (match(RIGHT_BRACKET)){
+            return new ArrayList<Expr>();
         }
-        return expr;
-
-    }
-
-    private Expr and() {
-        Expr expr=equality();
-        while (match(AND)){
-            Token operator=previous();
-            Expr right=equality();
-            expr=new Expr.Logical(expr,operator,right);
-
+        List exprs=new ArrayList<Expr>();
+        exprs.add(assignment());
+        while (match(COMMA)){
+            exprs.add(assignment());
         }
-        return expr;
+        consume(RIGHT_BRACKET,"Expect ']' after array.");
+        return exprs;
 
     }
 
-    private Expr equality() {
-        Expr expr=comparison();
-        while(match(BANG_EQUAL,EQUAL_EQUAL)){
-            Token operator=previous();
-            Expr right=comparison();
-            expr=new Expr.Binary(expr,operator,right);
-
-        }
-        return expr;
-
-    }
 
     private Token previous() {
         return tokens.get(current-1);
@@ -505,10 +533,14 @@ public class Parser {
                 case WHILE:
                 case PRINT:
                 case RETURN:
+                case BREAK:
+                case CONTINUE:
                     return;
             }
             advance();
 
         }
     }
+
+
 }

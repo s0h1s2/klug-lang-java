@@ -34,10 +34,11 @@ public class Scanner {
         keywords.put("var",    VAR);
         keywords.put("while",  WHILE);
         keywords.put("break",  BREAK);
+        keywords.put("continue",  CONTINUE);
+
         keywords.put("int",  INT);
         keywords.put("string",  STR);
         keywords.put("bool",  BOOL);
-
     }
 
     public Scanner(String source) {
@@ -72,7 +73,9 @@ public class Scanner {
 
             case ',': addToken(COMMA); break;
             case '.': addToken(DOT); break;
-            case '-': addToken(MINUS); break;
+            case '-':
+                addToken(match('-')?DECREMENT:MINUS);
+                break;
             case '+':
                 addToken(match('+')? INCREMENT :PLUS);
                 break;
@@ -109,7 +112,9 @@ public class Scanner {
             case '"':
                 string();
                 break;
-                
+            case '`':
+                templateLiteral();
+                break;
             default:
                 
                 if (isDigit(c)){
@@ -125,6 +130,24 @@ public class Scanner {
                 break;
 
         }
+    }
+
+    private void templateLiteral() {
+        while (peek()!='`' && !isAtEnd()){
+            if (peek()=='\n') line++;
+            if (peek()=='$')addToken(TMPLITERALSIGN);
+            advance();
+
+        }
+        if (isAtEnd()){
+            Klug.error(line,"unterminated template literal.");
+            return;
+        }
+        advance();
+        String templateLiteral=source.substring(start+1,current-1);
+
+        addToken(TEMPLATELITERAL,templateLiteral);
+
     }
 
     private void identifier() {

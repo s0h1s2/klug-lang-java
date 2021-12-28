@@ -1,0 +1,2 @@
+# TODOS
+- self host interpreter
