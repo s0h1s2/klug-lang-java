@@ -4,7 +4,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Stream;
 
 import static com.programming.luxembourg.TokenType.*;
 
@@ -364,9 +363,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>
 
     @Override
     public Object visitThisExpr(Expr.This aThis) {
-//        return lookUpVariable(aThis.keyword,aThis);
-        return "not implemented yet";
-
+        return lookUpVariable(aThis.keyword,aThis);
     }
 
     @Override
@@ -463,7 +460,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>
         locals.put(variable,depth);
 
     }
-    private Object lookUpVariable(Token name, Expr.Variable expr) {
+    private Object lookUpVariable(Token name, Expr expr) {
         Integer distance=locals.get(expr);
         if (distance!=null){
             return environment.getAt(distance,name.lexme);

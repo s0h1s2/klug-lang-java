@@ -6,6 +6,9 @@ public class Resolver implements Expr.Visitor<Void>,Stmt.Visitor<Void> {
     private final Interpreter interpreter;
     private Stack<Map<String, Boolean>> scopes=new Stack<>();
     private FunctionType currentFunction=FunctionType.NONE;
+    private ClassType currentClass=ClassType.NONE;
+    private boolean isLoop=false;
+
 
     Resolver(Interpreter interpreter){
         this.interpreter = interpreter;
@@ -92,8 +95,11 @@ public class Resolver implements Expr.Visitor<Void>,Stmt.Visitor<Void> {
 
     @Override
     public Void visitThisExpr(Expr.This aThis) {
+        if (currentClass==ClassType.NONE){
+            Klug.error(aThis.keyword,"can't use 'this' outside of class");
+            return null;
+        }
         resolveLocal(aThis,aThis.keyword);
-
         return null;
     }
 
@@ -164,14 +170,21 @@ public class Resolver implements Expr.Visitor<Void>,Stmt.Visitor<Void> {
 
     @Override
     public Void visitWhileStmt(Stmt.While aWhile) {
+        isLoop=true;
+
         resolve(aWhile.condition);
         resolve(aWhile.body);
+        isLoop=false;
 
         return null;
     }
 
     @Override
     public Void visitBreakStmt(Stmt.Break aBreak) {
+        if (!isLoop){
+            Klug.error(aBreak.keyword,"'break' must be used inside loop.");
+            return null;
+        }
         return null;
     }
 
@@ -199,6 +212,9 @@ public class Resolver implements Expr.Visitor<Void>,Stmt.Visitor<Void> {
 
     @Override
     public Void visitClassStmt(Stmt.Class aClass) {
+        ClassType enclosingClass=currentClass;
+        currentClass=ClassType.CLASS;
+
         declare(aClass.name);
         define(aClass.name);
         beginScope();
@@ -209,6 +225,7 @@ public class Resolver implements Expr.Visitor<Void>,Stmt.Visitor<Void> {
             resolveFunction(method,declaration);
         }
         endScope();
+        currentClass=enclosingClass;
 
         return null;
     }
@@ -220,6 +237,11 @@ public class Resolver implements Expr.Visitor<Void>,Stmt.Visitor<Void> {
 
     @Override
     public Void visitContinueStmt(Stmt.Continue aContinue) {
+        if (!isLoop){
+            Klug.error(aContinue.keyword,"'continue' must be used inside loop.");
+            return null;
+
+        }
         return null;
     }
 

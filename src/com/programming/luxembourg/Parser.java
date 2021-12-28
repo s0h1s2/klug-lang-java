@@ -11,8 +11,6 @@ public class Parser {
 
     private final List<Token> tokens;
     private int current=0;
-    private int isLoop=0;
-
     Parser(List<Token> tokens){
         this.tokens = tokens;
     }
@@ -124,11 +122,9 @@ public class Parser {
     }
 
     private Stmt continueStatement() {
-        if (this.isLoop<=0){
-                throw error(this.previous(),"should be inside loop.");
-        }
+        Token keyword=this.previous();
         consume(SEMICOLON,"Expect ';' after 'continue'.");
-        return new Stmt.Continue();
+        return new Stmt.Continue(keyword);
     }
 
 
@@ -145,11 +141,10 @@ public class Parser {
 
 
     private Stmt breakStatement() {
-        if (this.isLoop<=0){
-            throw error(this.previous(),"'break' should be inside loop.");
-        }
+        Token keyword=this.previous();
+
         consume(SEMICOLON,"Expect ';' after 'break'");
-        return new Stmt.Break();
+        return new Stmt.Break(keyword);
     }
 
     private Stmt forStatement() {
@@ -192,12 +187,10 @@ public class Parser {
     }
 
     private Stmt whileStatement() {
-        this.isLoop++;
         consume(LEFT_PAREN,"Expect '(' after while");
         Expr condition=expression();
         consume(RIGHT_PAREN,"Expect ')' after while");
         Stmt body=statement();
-        this.isLoop--;
         return new Stmt.While(condition,body);
 
     }
