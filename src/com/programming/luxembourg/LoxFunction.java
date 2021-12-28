@@ -1,7 +1,6 @@
 package com.programming.luxembourg;
 
-import com.programming.luxembourg.Interpreter;
-import com.programming.luxembourg.LoxCallable;
+import com.programming.luxembourg.Interfaces.LoxCallable;
 
 
 import java.util.List;
@@ -10,11 +9,12 @@ public class LoxFunction implements LoxCallable {
 
     private final Stmt.Function declaration;
     private final Environment closure;
+    private final boolean isInitializer;
 
-    LoxFunction(Stmt.Function declaration,Environment closure){
+    LoxFunction(Stmt.Function declaration,Environment closure,boolean isInitializer){
         this.declaration=declaration;
         this.closure=closure;
-
+        this.isInitializer=isInitializer;
     }
     @Override
     public Object call(Interpreter interpreter, List<Object> arguments) {
@@ -25,6 +25,8 @@ public class LoxFunction implements LoxCallable {
         try{
             interpreter.executeBlock(declaration.body,environment);
         }catch (Return returnValue){
+            if (isInitializer) return closure.getAt(0,"this");
+
             return returnValue.value;
         }
 
@@ -43,10 +45,10 @@ public class LoxFunction implements LoxCallable {
 
     }
 
-    public Object bind(LoxInstance loxInstance) {
+    public LoxFunction bind(LoxInstance loxInstance) {
         Environment environment=new Environment();
         environment.define("this",loxInstance);
-        return new LoxFunction(declaration,environment);
+        return new LoxFunction(declaration,environment,isInitializer);
 
 
     }

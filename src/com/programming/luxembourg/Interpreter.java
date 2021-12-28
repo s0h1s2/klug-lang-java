@@ -5,8 +5,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-import static com.programming.luxembourg.TokenType.*;
+import static com.programming.luxembourg.Types.TokenType.*;
 
+import com.programming.luxembourg.Interfaces.KlugInstance;
+import com.programming.luxembourg.Interfaces.LoxCallable;
 import com.programming.luxembourg.methods.Clock;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>
@@ -90,7 +92,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>
 
     @Override
     public Void visitFunctionStmt(Stmt.Function function) {
-        LoxFunction loxFunction=new LoxFunction(function,environment);
+        LoxFunction loxFunction=new LoxFunction(function,environment,false);
         environment.define(function.name.lexme,loxFunction);
         return null;
 
@@ -113,7 +115,8 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>
         environment.define(stmt.name.lexme,null);
         Map<String,LoxFunction> methods=new HashMap<>();
         for (Stmt.Function method:stmt.methods){
-            LoxFunction function=new LoxFunction(method,environment);
+
+            LoxFunction function=new LoxFunction(method,environment,method.name.lexme.equals("init"));
             methods.put(method.name.lexme,function);
         }
         LoxClass lclass=new LoxClass(stmt.name.lexme,methods);
@@ -194,6 +197,24 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>
                 return (double)left%(double)right;
             case EXPONENT:
                 return Math.pow((double) left,(double) right);
+            case INSTANCEOF:
+                if(left instanceof KlugInstance && right instanceof KlugInstance){
+                    if(((KlugInstance) left).isInstance() && (!((KlugInstance) right).isInstance()) ){
+                        String base=left.toString().split("\\s")[0];
+
+                        if (base.equals(right.toString())){
+                            return true;
+
+                        }else{
+                            return false;
+                        }
+
+                    }
+
+                } else{
+                    throw new RuntimeError(expr.operator,"invalid use of instanceof right operand must be base class.");
+                }
+                return false;
 
             case PLUS:
                 if (left instanceof Double && right instanceof Double){

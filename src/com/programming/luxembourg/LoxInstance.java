@@ -1,9 +1,11 @@
 package com.programming.luxembourg;
 
+import com.programming.luxembourg.Interfaces.KlugInstance;
+
 import java.util.HashMap;
 import java.util.Map;
 
-public class LoxInstance {
+public class LoxInstance implements KlugInstance {
     private LoxClass loxClass;
     private final Map<String,Object> fields=new HashMap<>();
 
@@ -27,7 +29,10 @@ public class LoxInstance {
         return loxClass+" instance";
 
     }
+    public boolean isInstance(){
+        return true;
 
+    }
     public void set(Token name, Object value) {
         fields.put(name.lexme,value);
 

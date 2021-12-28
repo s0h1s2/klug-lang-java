@@ -1,11 +1,10 @@
-package com.programming.luxembourg;
+package com.programming.luxembourg.Types;
 
 public enum TokenType {
     LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE,
     COMMA, DOT, MINUS, PLUS, SEMICOLON, SLASH, STAR,
     LEFT_BRACKET,
     RIGHT_BRACKET,
-    TMPLITERALSIGN,
 
     // One or two character tokens.
     BANG, BANG_EQUAL,
@@ -16,11 +15,10 @@ public enum TokenType {
     DECREMENT,
     EXPONENT,MODULO,
     // Literals.
-    IDENTIFIER, STRING, NUMBER,TEMPLATELITERAL,
+    IDENTIFIER, STRING, NUMBER,
     // Keywords.
     AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR,
-    PRINT, RETURN, SUPER, THIS, TRUE, VAR, WHILE,BREAK,
-    INT,STR,BOOL,IMPORT,CONTINUE,
-
+    PRINT, RETURN, SUPER, THIS, TRUE, VAR, WHILE,BREAK,IMPORT,CONTINUE,
+    INSTANCEOF,
     EOF;
 }

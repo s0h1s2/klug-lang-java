@@ -1,11 +1,13 @@
 package com.programming.luxembourg;
 
+import com.programming.luxembourg.Types.TokenType;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.programming.luxembourg.TokenType.*;
+import static com.programming.luxembourg.Types.TokenType.*;
 
 public class Scanner {
     private final String source;
@@ -13,7 +15,7 @@ public class Scanner {
     private int line=1;
     private int start=0;
     private int current=0;
-    private static final Map<String,TokenType> keywords;
+    private static final Map<String, TokenType> keywords;
     static {
         keywords = new HashMap<>();
         keywords.put("and",    AND);
@@ -35,10 +37,8 @@ public class Scanner {
         keywords.put("while",  WHILE);
         keywords.put("break",  BREAK);
         keywords.put("continue",  CONTINUE);
+        keywords.put("instanceof",  INSTANCEOF);
 
-        keywords.put("int",  INT);
-        keywords.put("string",  STR);
-        keywords.put("bool",  BOOL);
     }
 
     public Scanner(String source) {
@@ -112,9 +112,6 @@ public class Scanner {
             case '"':
                 string();
                 break;
-            case '`':
-                templateLiteral();
-                break;
             default:
                 
                 if (isDigit(c)){
@@ -132,23 +129,7 @@ public class Scanner {
         }
     }
 
-    private void templateLiteral() {
-        while (peek()!='`' && !isAtEnd()){
-            if (peek()=='\n') line++;
-            if (peek()=='$')addToken(TMPLITERALSIGN);
-            advance();
 
-        }
-        if (isAtEnd()){
-            Klug.error(line,"unterminated template literal.");
-            return;
-        }
-        advance();
-        String templateLiteral=source.substring(start+1,current-1);
-
-        addToken(TEMPLATELITERAL,templateLiteral);
-
-    }
 
     private void identifier() {
         while(isAlphaNumeric(peek())) advance();

@@ -1,6 +1,7 @@
 package com.programming.luxembourg.methods;
 
 import com.programming.luxembourg.*;
+import com.programming.luxembourg.Interfaces.LoxCallable;
 
 import java.util.List;
 

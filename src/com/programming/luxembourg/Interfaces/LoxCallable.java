@@ -1,4 +1,6 @@
-package com.programming.luxembourg;
+package com.programming.luxembourg.Interfaces;
+
+import com.programming.luxembourg.Interpreter;
 
 import java.util.List;
 

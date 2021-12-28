@@ -1,5 +1,7 @@
 package com.programming.luxembourg;
 
+import com.programming.luxembourg.Types.TokenType;
+
 public class Token {
     final TokenType type;
     final String lexme;

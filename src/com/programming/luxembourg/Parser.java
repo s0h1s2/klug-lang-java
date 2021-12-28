@@ -1,10 +1,12 @@
 package com.programming.luxembourg;
 
+import com.programming.luxembourg.Types.TokenType;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.programming.luxembourg.TokenType.*;
+import static com.programming.luxembourg.Types.TokenType.*;
 
 public class Parser {
     private static class ParseError extends RuntimeException{}
@@ -252,7 +254,7 @@ public class Parser {
 
     private Expr equality() {
         Expr expr=comparison();
-        while(match(BANG_EQUAL,EQUAL_EQUAL)){
+        while(match(BANG_EQUAL,EQUAL_EQUAL,INSTANCEOF)){
             Token operator=previous();
             Expr right=comparison();
             expr=new Expr.Binary(expr,operator,right);

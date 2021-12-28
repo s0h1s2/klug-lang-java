@@ -1,5 +1,8 @@
 package com.programming.luxembourg;
 
+import com.programming.luxembourg.Types.ClassType;
+import com.programming.luxembourg.Types.FunctionType;
+
 import java.util.*;
 
 public class Resolver implements Expr.Visitor<Void>,Stmt.Visitor<Void> {
@@ -203,7 +206,12 @@ public class Resolver implements Expr.Visitor<Void>,Stmt.Visitor<Void> {
         if (currentFunction==FunctionType.NONE){
             Klug.error(aReturn.keyword,"Can't return from top-level code.");
         }
+
         if (aReturn.value!=null){
+            if (currentFunction==FunctionType.INITIALIZER){
+                Klug.error(aReturn.keyword,"can't return value from initializer.");
+                return null;
+            }
             resolve(aReturn.value);
 
         }
@@ -222,6 +230,10 @@ public class Resolver implements Expr.Visitor<Void>,Stmt.Visitor<Void> {
 
         for (Stmt.Function method : aClass.methods){
             FunctionType declaration=FunctionType.METHOD;
+            if(method.name.lexme.equals("init")){
+                declaration=FunctionType.INITIALIZER;
+
+            }
             resolveFunction(method,declaration);
         }
         endScope();

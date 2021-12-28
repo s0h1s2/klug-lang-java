@@ -1,5 +1,7 @@
 package com.programming.luxembourg;
 
+import com.programming.luxembourg.Types.TokenType;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -88,7 +90,7 @@ public class Klug {
         hasError=true;
     }
     static void error(Token token, String message){
-        if (token.type==TokenType.EOF){
+        if (token.type== TokenType.EOF){
             report(token.line,"at end ",message);
         }else{
             report(token.line,"at '"+token.lexme+"'",message);

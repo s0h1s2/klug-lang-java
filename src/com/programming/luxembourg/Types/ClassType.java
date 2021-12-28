@@ -1,4 +1,4 @@
-package com.programming.luxembourg;
+package com.programming.luxembourg.Types;
 
 public enum ClassType {
     NONE,
