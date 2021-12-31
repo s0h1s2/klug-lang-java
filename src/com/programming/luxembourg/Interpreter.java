@@ -114,12 +114,21 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>
     {
         environment.define(stmt.name.lexme,null);
         Map<String,LoxFunction> methods=new HashMap<>();
-        for (Stmt.Function method:stmt.methods){
+        Map<String,Object> fields=new HashMap<>();
 
+        for (Stmt.Function method:stmt.methods){
             LoxFunction function=new LoxFunction(method,environment,method.name.lexme.equals("init"));
             methods.put(method.name.lexme,function);
         }
-        LoxClass lclass=new LoxClass(stmt.name.lexme,methods);
+        for (Stmt.Var field:stmt.fields){
+            Object value=null;
+
+            if (field.initializer!=null){
+                value=this.evaluate(field.initializer);
+            }
+            fields.put(field.name.lexme,value);
+        }
+        LoxClass lclass=new LoxClass(stmt.name.lexme,methods,fields);
 
         environment.assign(stmt.name,lclass);
         return null;
@@ -212,7 +221,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>
                     }
 
                 } else{
-                    throw new RuntimeError(expr.operator,"invalid use of instanceof right operand must be base class.");
+                    throw new RuntimeError(expr.operator,"invalid use of instanceof right operand must be class base.");
                 }
                 return false;
 

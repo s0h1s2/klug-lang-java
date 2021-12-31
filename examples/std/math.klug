@@ -1,0 +1,27 @@
+class Math{
+    abs(x){
+       if(x<0){
+            return -1*x;
+       }
+       return x;
+    }
+    min(x,y){
+        if(x<y){
+            return x;
+
+        }
+        return y;
+
+    }
+    max(x,y){
+        if(x>y){
+             return x;
+
+        }
+        return y;
+
+    }
+    sqrt(x){
+
+    }
+}

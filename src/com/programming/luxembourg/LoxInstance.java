@@ -35,6 +35,9 @@ public class LoxInstance implements KlugInstance {
     }
     public void set(Token name, Object value) {
         fields.put(name.lexme,value);
-
     }
+    public void set(String name, Object value) {
+        fields.put(name,value);
+    }
+
 }

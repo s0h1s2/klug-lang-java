@@ -13,6 +13,8 @@ public class Parser {
 
     private final List<Token> tokens;
     private int current=0;
+    private int backtrackCurrent=0;
+
     Parser(List<Token> tokens){
         this.tokens = tokens;
     }
@@ -64,14 +66,22 @@ public class Parser {
     }
     private Stmt classDeclaration() {
         Token name=consume(IDENTIFIER,"Expect class name");
-        consume(LEFT_BRACE,"Expect '(' before body");
+        consume(LEFT_BRACE,"Expect '{' before body");
         List<Stmt.Function> methods=new ArrayList<>();
+        List<Stmt.Var> fields=new ArrayList<>();
         while (!check(RIGHT_BRACE) && !isAtEnd()){
-            methods.add(function("method"));
+            if (match(FUN)){
+                methods.add(function("method"));
+            }else if (match(VAR)){
+                fields.add(varDeclaration());
+            }else{
+                throw error(peek(),"unexpected token.");
+
+            }
 
         }
-        consume(RIGHT_BRACE,"expect ')' after class body.");
-        return new Stmt.Class(name,methods);
+        consume(RIGHT_BRACE,"expect '}' after class body.");
+        return new Stmt.Class(name,methods,fields);
     }
 
 
@@ -96,7 +106,7 @@ public class Parser {
 
     }
 
-    private Stmt varDeclaration() {
+    private Stmt.Var varDeclaration() {
         Token name=consume(IDENTIFIER,"Expect variable name.");
         Expr initializer=null;
         if (match(EQUAL)){
@@ -440,7 +450,7 @@ public class Parser {
         List exprs=new ArrayList<Expr>();
         exprs.add(assignment());
         while (match(COMMA)){
-            exprs.add(assignment());
+            exprs.add(expression());
         }
         consume(RIGHT_BRACKET,"Expect ']' after array.");
         return exprs;

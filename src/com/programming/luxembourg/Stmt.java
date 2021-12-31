@@ -161,10 +161,12 @@ abstract  class Stmt {
 
     static class Class extends Stmt {
         Class(Token name,
-              List<Stmt.Function> methods) {
+              List<Stmt.Function> methods,List<Stmt.Var> fields) {
             this.name = name;
             //this.superclass = superclass;
             this.methods = methods;
+            this.fields=fields;
+
         }
 
         @Override
@@ -175,6 +177,8 @@ abstract  class Stmt {
         final Token name;
         //final Expr.Variable superclass;
         final List<Stmt.Function> methods;
+        final List<Stmt.Var> fields;
+
     }
     static class Import extends Stmt {
         Import(Object path) {

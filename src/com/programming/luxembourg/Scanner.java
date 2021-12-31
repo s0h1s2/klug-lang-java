@@ -97,11 +97,34 @@ public class Scanner {
                 addToken(match('=')?GREATER_EQUAL:GREATER);
                 break;
             case '/':
-                if (match('/')){
+                if(match('*')){
+                    boolean isCommentTerminated=false;
+
+                    while(!isAtEnd()){
+                        if (peek()=='\n'){
+                            line++;
+                        }
+                        if (peek()=='*' && peekNext()=='/'){
+                            advance();
+                            advance();
+                            isCommentTerminated=true;
+
+                            break;
+                        }
+                        advance();
+                    }
+                    if (!isCommentTerminated){
+                        Klug.error(line,"block comment should be terminated.");
+                    }
+
+                }
+                else if (match('/')){
                     while(peek()!='\n' && !isAtEnd()) advance();
                 }else{
                     addToken(SLASH);
                 }
+                break;
+
             case ' ':
             case '\r':
             case '\t':
