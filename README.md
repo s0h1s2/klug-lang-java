@@ -6,10 +6,6 @@ this project is made for beginners to teach them how to think like computer not 
 ```
 16/2*1+1
 ```
-```
-var name="some value";
-
-```
 ###### declare variable
 ```
 var name="something";
